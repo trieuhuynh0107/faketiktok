@@ -55,6 +55,11 @@ const videoUrls = [
 function App() {
   const [videos, setVideos] = useState([]);
   const videoRefs = useRef([]);
+  
+  // State cho drag navigation - THÊM MỚI
+  const [startY, setStartY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     setVideos(videoUrls);
@@ -64,10 +69,9 @@ function App() {
     const observerOptions = {
       root: null,
       rootMargin: '0px',
-      threshold: 0.8, // Adjust this value to change the scroll trigger point
+      threshold: 0.8,
     };
 
-    // This function handles the intersection of videos
     const handleIntersection = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -82,27 +86,70 @@ function App() {
 
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
 
-    // We observe each video reference to trigger play/pause
     videoRefs.current.forEach((videoRef) => {
       observer.observe(videoRef);
     });
 
-    // We disconnect the observer when the component is unmounted
     return () => {
       observer.disconnect();
     };
   }, [videos]);
 
-  // This function handles the reference of each video
+  // THÊM MỚI: Xử lý drag navigation
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartY(e.clientY);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+
+    const currentY = e.clientY;
+    const diff = startY - currentY;
+
+    // Nếu kéo xuống (diff > 50) -> scroll xuống
+    if (diff > 50) {
+      const container = containerRef.current;
+      if (container) {
+        container.scrollBy({
+          top: window.innerHeight,
+          behavior: 'smooth'
+        });
+      }
+      setIsDragging(false);
+    }
+    // Nếu kéo lên (diff < -50) -> scroll lên
+    else if (diff < -50) {
+      const container = containerRef.current;
+      if (container) {
+        container.scrollBy({
+          top: -window.innerHeight,
+          behavior: 'smooth'
+        });
+      }
+      setIsDragging(false);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   const handleVideoRef = (index) => (ref) => {
     videoRefs.current[index] = ref;
   };
 
   return (
     <div className="app">
-      <div className="container">
+      <div 
+        className="container"
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
         <TopNavbar className="top-navbar" />
-        {/* Here we map over the videos array and create VideoCard components */}
         {videos.map((video, index) => (
           <VideoCard
             key={index}
@@ -123,7 +170,6 @@ function App() {
       </div>
     </div>
   );
-  
 }
 
 export default App;
