@@ -9,6 +9,15 @@ function FooterRight({ likes, comments, saves, shares, profilePic, videoRef }) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [userAddIcon, setUserAddIcon] = useState(faHeart);
+  const [showSharePopup, setShowSharePopup] = useState(false);
+
+  const handleShareClick = () => {
+    setShowSharePopup(true);
+  };
+
+  const closeSharePopup = () => {
+    setShowSharePopup(false);
+  };
 
   const handleUserAddClick = () => {
     setUserAddIcon(faCircleCheck);
@@ -123,14 +132,14 @@ const handleSaveClick = () => {
         <p>{muted ? "Muted" : "Sound"}</p>
       </div>
 
-      <div className="sidebar-icon">
-        {/* The share icon */}
+      <div className="sidebar-icon" onClick={handleShareClick}>
         <FontAwesomeIcon
           icon={faShare}
           style={{ width: '35px', height: '35px', color: 'white' }}
         />
-        <p>{shares}</p> {/* Displaying the number of shares */}
+        <p>{shares}</p>
       </div>
+
 
       <div className="sidebar-icon record">
         {/* Displaying the record icon */}
@@ -139,6 +148,19 @@ const handleSaveClick = () => {
           alt="Record Icon"
         />
       </div>
+      {showSharePopup && (
+      <div className="share-popup">
+        <div className="share-popup-content">
+          <button className="close-btn" onClick={closeSharePopup}>✖</button>
+          <h3>Share to:</h3>
+          <ul>
+            <li>Facebook</li>
+            <li>Instagram</li>
+            <li>Threads</li>
+          </ul>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
