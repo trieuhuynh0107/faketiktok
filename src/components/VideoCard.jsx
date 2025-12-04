@@ -23,29 +23,39 @@ const VideoCard = (props) => {
   
 
   return (
-  <div className="video">
-    <video
-      className="player"
-      onClick={onVideoPress}
-      ref={(ref) => {
-        videoRef.current = ref;
-        setVideoRef(ref);
-      }}
-      loop
-      src={url}
-      muted
-    ></video>
+    <div className="video">
+      <video
+        className="player"
+        onClick={onVideoPress}
+        ref={(ref) => {
+          videoRef.current = ref;
+          setVideoRef(ref);
+        }}
+        loop
+        src={url}
+        muted
+      ></video>
 
-    <div className="bottom-controls">
-      <div className="footer-left">
-        {/* The left part of the container */}
-      </div>
-      <div className="footer-right">
-        {/* The right part of the container */}
+      <div className="bottom-controls">
+        <div className="footer-left">
+          <FooterLeft 
+            username={username}
+            description={description}
+            song={song}
+          />
+        </div>
+        <div className="footer-right">
+          <FooterRight
+            likes={likes}
+            comments={comments}
+            saves={saves}
+            shares={shares}
+            profilePic={profilePic}
+          />
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default VideoCard;
