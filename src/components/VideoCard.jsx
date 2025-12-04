@@ -51,6 +51,7 @@ const VideoCard = (props) => {
             saves={saves}
             shares={shares}
             profilePic={profilePic}
+            videoRef={videoRef}
           />
         </div>
       </div>

@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCirclePlus, faCircleCheck, faHeart, faCommentDots, faBookmark, faShare } from '@fortawesome/free-solid-svg-icons';
 import './FooterRight.css';
+import { faVolumeHigh, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
 
-function FooterRight({ likes, comments, saves, shares, profilePic }) {
+
+function FooterRight({ likes, comments, saves, shares, profilePic, videoRef }) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [userAddIcon, setUserAddIcon] = useState(faHeart);
@@ -36,7 +38,14 @@ function FooterRight({ likes, comments, saves, shares, profilePic }) {
   const handleLikeClick = () => {
     setLiked((prevLiked) => !prevLiked);
   };
+const [muted, setMuted] = useState(false);
 
+const handleMuteClick = () => {
+  if (videoRef?.current) {
+    videoRef.current.muted = !muted;
+    setMuted(!muted);
+  }
+};
   return (
     <div className="footer-right">
       <div className="sidebar-icon">
@@ -99,6 +108,14 @@ function FooterRight({ likes, comments, saves, shares, profilePic }) {
         )}
         {/* Displaying the number of saves */}
         <p>{saved ? saves : 1}</p>
+      </div>
+
+      <div className="sidebar-icon" onClick={handleMuteClick}>
+        <FontAwesomeIcon
+          icon={muted ? faVolumeXmark : faVolumeHigh}
+          className="icon"
+        />
+        <p>{muted ? "Muted" : "Sound"}</p>
       </div>
 
       <div className="sidebar-icon">
