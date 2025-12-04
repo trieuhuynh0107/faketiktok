@@ -4,7 +4,6 @@ import VideoCard from './components/VideoCard';
 import BottomNavbar from './components/BottomNavbar';
 import TopNavbar from './components/TopNavbar';
 
-// This array holds information about different videos
 const videoUrls = [
   {
     url: require('./videos/video1.mp4'),
@@ -54,48 +53,50 @@ const videoUrls = [
 
 function App() {
   const [videos, setVideos] = useState([]);
+  const [filteredVideos, setFilteredVideos] = useState([]);
   const videoRefs = useRef([]);
   
-  // State cho drag navigation - THÊM MỚI
   const [startY, setStartY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
     setVideos(videoUrls);
+    setFilteredVideos(videoUrls);
   }, []);
 
   useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.8,
-    };
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.8,
+  };
 
-    const handleIntersection = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const videoElement = entry.target;
-          videoElement.play();
-        } else {
-          const videoElement = entry.target;
-          videoElement.pause();
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(handleIntersection, observerOptions);
-
-    videoRefs.current.forEach((videoRef) => {
-      observer.observe(videoRef);
+  const handleIntersection = (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const videoElement = entry.target;
+        videoElement.play();
+      } else {
+        const videoElement = entry.target;
+        videoElement.pause();
+      }
     });
+  };
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [videos]);
+  const observer = new IntersectionObserver(handleIntersection, observerOptions);
 
-  // THÊM MỚI: Xử lý drag navigation
+  videoRefs.current.forEach((videoRef) => {
+    if (videoRef) {  
+      observer.observe(videoRef);
+    }
+  });
+
+  return () => {
+    observer.disconnect();
+  };
+}, [filteredVideos]);
+
   const handleMouseDown = (e) => {
     setIsDragging(true);
     setStartY(e.clientY);
@@ -107,7 +108,6 @@ function App() {
     const currentY = e.clientY;
     const diff = startY - currentY;
 
-    // Nếu kéo xuống (diff > 50) -> scroll xuống
     if (diff > 50) {
       const container = containerRef.current;
       if (container) {
@@ -118,7 +118,6 @@ function App() {
       }
       setIsDragging(false);
     }
-    // Nếu kéo lên (diff < -50) -> scroll lên
     else if (diff < -50) {
       const container = containerRef.current;
       if (container) {
@@ -135,6 +134,24 @@ function App() {
     setIsDragging(false);
   };
 
+  const handleSearch = (query) => {
+    if (!query.trim()) {
+      setFilteredVideos(videos);
+      return;
+    }
+
+    const filtered = videos.filter(video => {
+      const hashtag = query.toLowerCase().replace('#', '');
+      return video.description.toLowerCase().includes(`#${hashtag}`);
+    });
+
+    setFilteredVideos(filtered);
+    
+    if (containerRef.current) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleVideoRef = (index) => (ref) => {
     videoRefs.current[index] = ref;
   };
@@ -149,23 +166,36 @@ function App() {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
-        <TopNavbar className="top-navbar" />
-        {videos.map((video, index) => (
-          <VideoCard
-            key={index}
-            username={video.username}
-            description={video.description}
-            song={video.song}
-            likes={video.likes}
-            saves={video.saves}
-            comments={video.comments}
-            shares={video.shares}
-            url={video.url}
-            profilePic={video.profilePic}
-            setVideoRef={handleVideoRef(index)}
-            autoplay={index === 0}
-          />
-        ))}
+        <TopNavbar className="top-navbar" onSearch={handleSearch} /> 
+        
+        {filteredVideos.length > 0 ? (
+          filteredVideos.map((video, index) => (
+            <VideoCard
+              key={index}
+              username={video.username}
+              description={video.description}
+              song={video.song}
+              likes={video.likes}
+              saves={video.saves}
+              comments={video.comments}
+              shares={video.shares}
+              url={video.url}
+              profilePic={video.profilePic}
+              setVideoRef={handleVideoRef(index)}
+              autoplay={index === 0}
+            />
+          ))
+        ) : (
+          <div style={{ 
+            color: 'white', 
+            textAlign: 'center', 
+            marginTop: '50px',
+            fontSize: '18px' 
+          }}>
+            No videos found with this hashtag 😢
+          </div>
+        )}
+        
         <BottomNavbar className="bottom-navbar" />
       </div>
     </div>
