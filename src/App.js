@@ -3,6 +3,7 @@ import './App.css';
 import VideoCard from './components/VideoCard';
 import BottomNavbar from './components/BottomNavbar';
 import TopNavbar from './components/TopNavbar';
+import VideoInfo from './components/VideoInfo';
 
 const videoUrls = [
   {
@@ -60,42 +61,90 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
 
+  // States for VideoInfo panel
+  const [showVideoInfo, setShowVideoInfo] = useState(false);
+  const [currentVideoInfo, setCurrentVideoInfo] = useState(null);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
   useEffect(() => {
     setVideos(videoUrls);
     setFilteredVideos(videoUrls);
   }, []);
 
   useEffect(() => {
-  const observerOptions = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.8,
-  };
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.8,
+    };
 
-  const handleIntersection = (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const videoElement = entry.target;
-        videoElement.play();
-      } else {
-        const videoElement = entry.target;
-        videoElement.pause();
+    const handleIntersection = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const videoElement = entry.target;
+          videoElement.play();
+        } else {
+          const videoElement = entry.target;
+          videoElement.pause();
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+    videoRefs.current.forEach((videoRef) => {
+      if (videoRef) {  
+        observer.observe(videoRef);
       }
     });
-  };
 
-  const observer = new IntersectionObserver(handleIntersection, observerOptions);
+    return () => {
+      observer.disconnect();
+    };
+  }, [filteredVideos]);
 
-  videoRefs.current.forEach((videoRef) => {
-    if (videoRef) {  
-      observer.observe(videoRef);
-    }
-  });
+  // Track current video index when scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  return () => {
-    observer.disconnect();
-  };
-}, [filteredVideos]);
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const videoHeight = window.innerHeight;
+      const index = Math.round(scrollTop / videoHeight);
+      
+      if (index >= 0 && index < filteredVideos.length) {
+        setCurrentVideoIndex(index);
+        
+        // Auto show video info when scrolling (optional - you can remove this if you only want arrow key)
+        if (showVideoInfo) {
+          setCurrentVideoInfo(filteredVideos[index]);
+        }
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [filteredVideos, showVideoInfo]);
+
+  // Listen for right arrow key to open VideoInfo panel
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === 'ArrowRight') {
+        if (filteredVideos[currentVideoIndex]) {
+          setCurrentVideoInfo(filteredVideos[currentVideoIndex]);
+          setShowVideoInfo(true);
+        }
+      } else if (e.key === 'ArrowLeft' && showVideoInfo) {
+        setShowVideoInfo(false);
+      } else if (e.key === 'Escape' && showVideoInfo) {
+        setShowVideoInfo(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentVideoIndex, filteredVideos, showVideoInfo]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -198,6 +247,13 @@ function App() {
         
         <BottomNavbar className="bottom-navbar" />
       </div>
+
+      {/* VideoInfo Panel */}
+      <VideoInfo 
+        video={currentVideoInfo}
+        isVisible={showVideoInfo}
+        onClose={() => setShowVideoInfo(false)}
+      />
     </div>
   );
 }
