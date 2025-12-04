@@ -46,6 +46,17 @@ const handleMuteClick = () => {
     setMuted(!muted);
   }
 };
+const handleSaveClick = () => {
+  setSaved(!saved);
+
+  if (videoRef?.current) {
+    const videoUrl = videoRef.current.src;
+    navigator.clipboard.writeText(videoUrl)
+      .then(() => console.log("Copied:", videoUrl))
+      .catch(err => console.error("Copy failed:", err));
+  }
+};
+
   return (
     <div className="footer-right">
       <div className="sidebar-icon">
@@ -91,24 +102,18 @@ const handleMuteClick = () => {
         <p>{comments}</p> {/* Displaying the number of comments */}
       </div>
 
-      <div className="sidebar-icon">
-        {/* The bookmark icon */}
-        {saved ? (
-          <FontAwesomeIcon
-            icon={faBookmark}
-            style={{ width: '35px', height: '35px', color: '#ffc107' }}
-            onClick={() => setSaved(false)}
-          />
-        ) : (
-          <FontAwesomeIcon
-            icon={faBookmark}
-            style={{ width: '35px', height: '35px', color: 'white' }}
-            onClick={() => setSaved(true)}
-          />
-        )}
-        {/* Displaying the number of saves */}
-        <p>{saved ? saves : 1}</p>
+     <div className="sidebar-icon" onClick={handleSaveClick}>
+        <FontAwesomeIcon
+          icon={faBookmark}
+          style={{
+            width: '35px',
+            height: '35px',
+            color: saved ? '#ffc107' : 'white'
+          }}
+        />
+        <p>{saves}</p>
       </div>
+
 
       <div className="sidebar-icon" onClick={handleMuteClick}>
         <FontAwesomeIcon
